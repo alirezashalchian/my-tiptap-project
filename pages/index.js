@@ -1,5 +1,6 @@
 import React from "react";
 import dynamic from "next/dynamic";
+import { Container, Typography } from "@mui/joy";
 
 const Editor = dynamic(() => import("../components/Tiptap"), {
   ssr: false,
@@ -7,10 +8,12 @@ const Editor = dynamic(() => import("../components/Tiptap"), {
 
 const EditorPage = () => {
   return (
-    <div>
-      <h1>My Rich Text Editor</h1>
+    <Container>
+      <Typography level="h2" component="h1" sx={{ mb: 2 }}>
+        My Rich Text Editor
+      </Typography>
       <Editor />
-    </div>
+    </Container>
   );
 };
 
