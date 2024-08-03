@@ -1,19 +1,16 @@
 import React, { useCallback } from "react";
-import { Box, Button, Typography } from "@mui/joy";
+import { Box, Button, MenuItem } from "@mui/joy";
 import styled from "@emotion/styled";
-import { useEditor, EditorContent } from "@tiptap/react";
-import Text from "@tiptap/extension-text";
-import Document from "@tiptap/extension-document";
-import Paragraph from "@tiptap/extension-paragraph";
-import Underline from "@tiptap/extension-underline";
+import {
+  useEditor,
+  EditorContent,
+  BubbleMenu,
+  FloatingMenu,
+} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
-import Heading from "@tiptap/extension-heading";
 import Image from "@tiptap/extension-image";
-import Blockquote from "@tiptap/extension-blockquote";
-import ListItem from "@tiptap/extension-list-item";
-import OrderedList from "@tiptap/extension-ordered-list";
-import CodeBlock from "@tiptap/extension-code-block";
+import Underline from "@tiptap/extension-underline";
 
 const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
   ".ProseMirror": {
@@ -47,22 +44,10 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
 
 const RichTextEditor = () => {
   const editor = useEditor({
-    extensions: [
-      Text,
-      Document,
-      Paragraph,
-      Underline,
-      StarterKit,
-      Link,
-      CodeBlock,
-      Heading,
-      Image,
-      Blockquote,
-      ListItem,
-      OrderedList,
-    ],
+    extensions: [StarterKit, Link, Image, Underline],
     content: "<p>Hello World!</p>",
   });
+
   const addImage = useCallback(() => {
     const url = window.prompt("URL");
 
@@ -76,72 +61,89 @@ const RichTextEditor = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
-        <Button onClick={() => editor.chain().focus().toggleBold().run()}>
-          Bold
-        </Button>
-        <Button onClick={() => editor.chain().focus().toggleItalic().run()}>
-          Italic
-        </Button>
-        <Button
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={editor.isActive("underline") ? "is-active" : ""}
-        >
-          Toggle underline
-        </Button>
-        <Button
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={editor.isActive("codeBlock") ? "is-active" : ""}
-        >
-          Toggle code block
-        </Button>
-        <Button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 1 }).run()
-          }
-        >
-          H1
-        </Button>
-        <Button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-        >
-          H2
-        </Button>
-        <Button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 3 }).run()
-          }
-        >
-          H3
-        </Button>
-        <Button
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={editor.isActive("blockquote") ? "is-active" : ""}
-        >
-          Toggle blockquote
-        </Button>
-        <Button
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        >
-          Ordered List
-        </Button>
-        <Button onClick={addImage}>Set image</Button>
-        <Button
-          onClick={() => {
-            const url = prompt("Enter video URL");
-            if (url) {
-              editor.chain().focus().setVideo({ src: url }).run();
-            }
+    <>
+      <StyledEditorContent editor={editor} />
+      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+        <Box
+          sx={{
+            backgroundColor: "grey",
+            padding: "6px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
           }}
         >
-          Video
-        </Button>
-      </Box>
+          <Button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+          >
+            H1
+          </Button>
+          <Button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+          >
+            H2
+          </Button>
+          <Button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+          >
+            H3
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
+            Blockquote
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          >
+            Ordered List
+          </Button>
+          <Button onClick={addImage}>Image</Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            className={editor.isActive("codeBlock") ? "is-active" : ""}
+          >
+            Code Block
+          </Button>
+          <Button>Video</Button>
+        </Box>
+      </FloatingMenu>
+      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+        <Box
+          sx={{
+            backgroundColor: "grey",
+            padding: "6px",
+            display: "flex",
+            gap: 1,
+          }}
+        >
+          <Button onClick={() => editor.chain().focus().toggleBold().run()}>
+            Bold
+          </Button>
+          <Button onClick={() => editor.chain().focus().toggleItalic().run()}>
+            Italic
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+          >
+            Underline
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={editor.isActive("strike") ? "is-active" : ""}
+          >
+            Strike
+          </Button>
+        </Box>
+      </BubbleMenu>
       <StyledEditorContent editor={editor} />
-    </Box>
+    </>
   );
 };
 
