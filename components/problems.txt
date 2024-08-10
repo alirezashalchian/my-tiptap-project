@@ -1,0 +1,15 @@
+1.In items.js the filtering method doesnt work, also the slash button is not query and we get an error if we delete this part of code:
+  if (typeof query !== "string") {
+    query = "";
+  }
+
+2.The Blockqoute is not working
+the blockqoute started working when i replaced:
+
+editor.chain().focus().deleteRange(range).setNode("blockqoute").run();
+
+with:
+
+editor.chain().focus().deleteRange(range).toggleBlockquote().run();
+
+but i cant understand why we use different methods for codeblock and blockqoute

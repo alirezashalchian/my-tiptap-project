@@ -1,16 +1,29 @@
-import React, { useCallback } from "react";
-import { Box, Button, MenuItem } from "@mui/joy";
+// components/tiptap.jsx
+import React, { useState, useCallback } from "react";
+import Button from "@mui/joy/Button";
+import Box from "@mui/joy/Box";
+import Sheet from "@mui/joy/Sheet";
+import IconButton from "@mui/joy/IconButton";
+import ToggleButtonGroup from "@mui/joy/ToggleButtonGroup";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatItalicIcon from "@mui/icons-material/FormatItalic";
+import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
+import FormatStrikethroughIcon from "@mui/icons-material/FormatStrikethrough";
+import SvgIcon from "@mui/joy/SvgIcon";
+import Divider from "@mui/joy/Divider";
+import AspectRatio from "@mui/joy/AspectRatio";
 import styled from "@emotion/styled";
-import {
-  useEditor,
-  EditorContent,
-  BubbleMenu,
-  FloatingMenu,
-} from "@tiptap/react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import Dropcursor from "@tiptap/extension-dropcursor";
 import Underline from "@tiptap/extension-underline";
+import getSuggestionItems from "./items";
+import Commands from "./commands";
+import renderItems from "./renderItems";
 
 const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
   ".ProseMirror": {
@@ -22,6 +35,14 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
 
     "&:first-child": {
       marginTop: 0,
+    },
+
+    "& blockquote": {
+      borderLeft: `3px solid ${theme.vars.palette.neutral[300]}`,
+      margin: theme.spacing(3, 0),
+      paddingLeft: theme.spacing(2),
+      color: theme.vars.palette.neutral[700],
+      fontStyle: "italic",
     },
 
     pre: {
@@ -43,18 +64,56 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
 }));
 
 const RichTextEditor = () => {
+  const [formats, setFormats] = useState(() => [""]);
+  const [color, setColor] = useState("#000");
+
   const editor = useEditor({
-    extensions: [StarterKit, Link, Image, Underline],
-    content: "<p>Hello World!</p>",
+    extensions: [
+      StarterKit,
+      Link,
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: "editor-image",
+        },
+      }),
+      Dropcursor,
+      Underline,
+      Color,
+      TextStyle,
+      Commands.configure({
+        suggestion: {
+          items: getSuggestionItems,
+          render: renderItems,
+        },
+      }),
+    ],
+    content: "<p>Use / command to see different options</p>",
+    editorProps: {
+      attributes: {
+        class: "tiptap custom-tiptap",
+      },
+    },
   });
 
   const addImage = useCallback(() => {
-    const url = window.prompt("URL");
-
+    const url = window.prompt("Enter the image URL:");
     if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+      editor.chain().focus().setImage({ src: url, alt: "Image" }).run();
     }
   }, [editor]);
+
+  const handleColorChange = useCallback(
+    (event) => {
+      const newColor = event.target.value;
+      setColor(newColor);
+      if (editor) {
+        editor.chain().focus().setColor(newColor).run();
+      }
+    },
+    [editor]
+  );
 
   if (!editor) {
     return null;
@@ -63,86 +122,112 @@ const RichTextEditor = () => {
   return (
     <>
       <StyledEditorContent editor={editor} />
-      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-        <Box
-          sx={{
-            backgroundColor: "grey",
-            padding: "6px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
-          <Button
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 1 }).run()
-            }
-          >
-            H1
-          </Button>
-          <Button
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 2 }).run()
-            }
-          >
-            H2
-          </Button>
-          <Button
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 3 }).run()
-            }
-          >
-            H3
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          >
-            Blockquote
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          >
-            Ordered List
-          </Button>
-          <Button onClick={addImage}>Image</Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            className={editor.isActive("codeBlock") ? "is-active" : ""}
-          >
-            Code Block
-          </Button>
-          <Button>Video</Button>
-        </Box>
-      </FloatingMenu>
+      <EditorContent editor={editor} className="editor" />
       <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
-        <Box
-          sx={{
-            backgroundColor: "grey",
-            padding: "6px",
-            display: "flex",
-            gap: 1,
-          }}
+        <Sheet
+          variant="outlined"
+          sx={{ borderRadius: "md", display: "flex", gap: 2, p: 0.5 }}
         >
-          <Button onClick={() => editor.chain().focus().toggleBold().run()}>
-            Bold
-          </Button>
-          <Button onClick={() => editor.chain().focus().toggleItalic().run()}>
-            Italic
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
+          <ToggleButtonGroup
+            variant="plain"
+            spacing={0.5}
+            value={formats}
+            onChange={(event, newFormats) => {
+              setFormats(newFormats);
+            }}
+            aria-label="text formatting"
           >
-            Underline
-          </Button>
+            <IconButton
+              value="bold"
+              aria-label="bold"
+              onClick={() => editor.chain().focus().toggleBold().run()}
+            >
+              <FormatBoldIcon />
+            </IconButton>
+            <IconButton
+              value="italic"
+              aria-label="italic"
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+            >
+              <FormatItalicIcon />
+            </IconButton>
+            <IconButton
+              value="underlined"
+              aria-label="underlined"
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+            >
+              <FormatUnderlinedIcon />
+            </IconButton>
+            <IconButton
+              value="strike"
+              aria-label="strike"
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              className={editor.isActive("strike") ? "is-active" : ""}
+            >
+              <FormatStrikethroughIcon />
+            </IconButton>
+          </ToggleButtonGroup>
+          <Divider
+            orientation="vertical"
+            sx={{ height: "60%", alignSelf: "center" }}
+          />
           <Button
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={editor.isActive("strike") ? "is-active" : ""}
+            component="label"
+            tabIndex={-1}
+            role={undefined}
+            aria-label="fill color"
+            variant="outlined"
+            color="neutral"
+            endDecorator={
+              <SvgIcon fontSize="md">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </SvgIcon>
+            }
+            sx={{ pl: 1 }}
           >
-            Strike
+            <AspectRatio
+              variant="plain"
+              ratio="1"
+              sx={{
+                borderRadius: "50%",
+                width: "1.5em",
+                bgcolor: color,
+              }}
+            >
+              <div />
+            </AspectRatio>
+            <Box
+              component="input"
+              type="color"
+              value={color}
+              onChange={handleColorChange}
+              sx={{
+                clip: "rect(0 0 0 0)",
+                clipPath: "inset(50%)",
+                height: "1px",
+                overflow: "hidden",
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                whiteSpace: "nowrap",
+                width: "1px",
+              }}
+            />
           </Button>
-        </Box>
+        </Sheet>
       </BubbleMenu>
-      <StyledEditorContent editor={editor} />
     </>
   );
 };
