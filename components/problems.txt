@@ -1,7 +1,4 @@
-1.In items.js the filtering method doesnt work, also the slash button is not query and we get an error if we delete this part of code:
-  if (typeof query !== "string") {
-    query = "";
-  }
+1.In items.js the filtering method doesnt work
 
 2.The blockqoute started working when i replaced:
 
@@ -14,12 +11,16 @@ editor.chain().focus().deleteRange(range).toggleBlockquote().run();
 but i cant understand why we use different methods for codeblock and blockqoute
 
 3.Toggle button group on bubble menu dont listen to the style of the text and act
-  independently
+  independently, 
 
 4.Ordered list doesnt toggle, it only seems to set the ordered list, and user
   cant unset it using the same button
 
-5. Later on for the slash command menu we can use the sticky item from "List" in MUI Joy to include categories and subitems
+5.The image is not centered yet the styles of the image-wrapper and img itself are 
+applied and it seems like it should be centered but its not
+
+6. Later on for the slash command menu we can use the sticky item from "List" in MUI
+Joy to include categories and subitems
 
 
 

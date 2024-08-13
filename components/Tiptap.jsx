@@ -57,7 +57,6 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
       justifyContent: "center",
       alignItems: "center",
       margin: "1em 0",
-      backgroundColor: "red",
     },
 
     pre: {
