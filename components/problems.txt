@@ -23,4 +23,4 @@ but i cant understand why we use different methods for codeblock and blockqoute
   MUI Joy style was applied to the CommandsList component.
 
 6.Later on for the slash command menu we can use the sticky item from "List" in MUI
-  Joy to include categories (subheaders) and subitems
+  Joy to include categories (subheaders) and subitems.
