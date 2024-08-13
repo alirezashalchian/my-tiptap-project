@@ -3,32 +3,6 @@ body {
   font-family: "Roboto", sans-serif;
 }
 
-.ProseMirror {
-  min-height: 40vh;
-  border: 2px solid peru;
-  border-radius: 10px;
-  outline: none;
-  padding: 1em;
-}
-
-.ProseMirror {
-  /* ... existing styles ... */
-
-  img.editor-image {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-  }
-}
-
-.tiptap img.editor-image {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
 .items {
   position: relative;
   border-radius: 0.25rem;

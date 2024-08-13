@@ -1,8 +1,4 @@
 import React, { Component } from "react";
-import List from "@mui/joy/List";
-import ListItem from "@mui/joy/ListItem";
-import ListItemButton from "@mui/joy/ListItemButton";
-import Sheet from "@mui/joy/Sheet";
 
 class CommandList extends Component {
   state = {
@@ -65,28 +61,21 @@ class CommandList extends Component {
   render() {
     const { items } = this.props;
     return (
-      <Sheet
-        variant="outlined"
-        sx={{
-          width: 320,
-          maxHeight: 300,
-          overflow: "auto",
-          borderRadius: "sm",
-        }}
-      >
-        <List>
-          {items.map((item, index) => (
-            <ListItem key={index}>
-              <ListItemButton
-                selected={index === this.state.selectedIndex}
-                onClick={() => this.selectItem(index)}
-              >
-                {item.element || item.title}
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Sheet>
+      <div className="items">
+        {items.map((item, index) => {
+          return (
+            <button
+              className={`item ${
+                index === this.state.selectedIndex ? "is-selected" : ""
+              }`}
+              key={index}
+              onClick={() => this.selectItem(index)}
+            >
+              {item.element || item.title}
+            </button>
+          );
+        })}
+      </div>
     );
   }
 }

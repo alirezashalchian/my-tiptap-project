@@ -1,4 +1,3 @@
-// components/tiptap.jsx
 import React, { useState, useCallback } from "react";
 import Button from "@mui/joy/Button";
 import Box from "@mui/joy/Box";
@@ -32,6 +31,7 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
     borderRadius: theme.vars.radius.sm,
     minHeight: 200,
     fontFamily: theme.vars.fontFamily.body,
+    outline: "none",
 
     "&:first-child": {
       marginTop: 0,
@@ -43,6 +43,21 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
       paddingLeft: theme.spacing(2),
       color: theme.vars.palette.neutral[700],
       fontStyle: "italic",
+    },
+
+    "& img": {
+      display: "block",
+      maxWidth: "100%",
+      height: "auto",
+      margin: "1em auto", // Centers the image horizontally
+    },
+
+    "& .image-wrapper": {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      margin: "1em 0",
+      backgroundColor: "red",
     },
 
     pre: {
@@ -72,10 +87,8 @@ const RichTextEditor = () => {
       StarterKit,
       Link,
       Image.configure({
-        inline: true,
-        allowBase64: true,
         HTMLAttributes: {
-          class: "editor-image",
+          class: "image-wrapper",
         },
       }),
       Dropcursor,
@@ -96,13 +109,6 @@ const RichTextEditor = () => {
       },
     },
   });
-
-  const addImage = useCallback(() => {
-    const url = window.prompt("Enter the image URL:");
-    if (url) {
-      editor.chain().focus().setImage({ src: url, alt: "Image" }).run();
-    }
-  }, [editor]);
 
   const handleColorChange = useCallback(
     (event) => {
