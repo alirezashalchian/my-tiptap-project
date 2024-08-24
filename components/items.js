@@ -1,5 +1,5 @@
 const getSuggestionItems = (query) => {
-  return [
+  const items = [
     {
       title: "Heading 1",
       category: "Blocks",
@@ -47,7 +47,19 @@ const getSuggestionItems = (query) => {
       title: "Code Block",
       category: "Blocks",
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode("codeBlock").run();
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setCodeBlock({ language: "javascript" })
+          .run();
+      },
+    },
+    {
+      title: "Bullet List",
+      category: "Blocks",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleBulletList().run();
       },
     },
     {
@@ -57,6 +69,7 @@ const getSuggestionItems = (query) => {
         editor.chain().focus().deleteRange(range).toggleOrderedList().run();
       },
     },
+
     {
       title: "Insert Image",
       category: "Media",
@@ -73,6 +86,14 @@ const getSuggestionItems = (query) => {
       },
     },
   ];
+
+  if (query) {
+    return items.filter((item) =>
+      item.title.toLowerCase().startsWith(query.toLowerCase())
+    );
+  }
+
+  return items;
 };
 
 export default getSuggestionItems;

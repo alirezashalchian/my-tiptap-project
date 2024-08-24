@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Button from "@mui/joy/Button";
 import Box from "@mui/joy/Box";
 import Sheet from "@mui/joy/Sheet";
@@ -8,15 +8,20 @@ import FormatBoldIcon from "@mui/icons-material/FormatBold";
 import FormatItalicIcon from "@mui/icons-material/FormatItalic";
 import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
 import FormatStrikethroughIcon from "@mui/icons-material/FormatStrikethrough";
+import LinkIcon from "@mui/icons-material/Link";
+import SubscriptIcon from "@mui/icons-material/Subscript";
 import SvgIcon from "@mui/joy/SvgIcon";
 import Divider from "@mui/joy/Divider";
 import AspectRatio from "@mui/joy/AspectRatio";
 import styled from "@emotion/styled";
 import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { common, createLowlight } from "lowlight";
 import TextStyle from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import Link from "@tiptap/extension-link";
+import Subscript from "@tiptap/extension-subscript";
 import Image from "@tiptap/extension-image";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Underline from "@tiptap/extension-underline";
@@ -25,6 +30,11 @@ import Commands from "./commands";
 import renderItems from "./renderItems";
 
 const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
+  ".hljs": {
+    background: "none",
+    padding: 0,
+  },
+
   ".ProseMirror": {
     padding: theme.spacing(2),
     border: `1px solid ${theme.vars.palette.neutral.outlinedBorder}`,
@@ -46,17 +56,17 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
     },
 
     "& img": {
-      display: "block",
-      maxWidth: "100%",
-      height: "auto",
-      margin: "1em auto", // Centers the image horizontally
+      display: "block !important", // Added !important
+      maxWidth: "100% !important",
+      height: "auto !important",
+      margin: "1em auto !important", // Centers the image horizontally
     },
 
     "& .image-wrapper": {
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      margin: "1em 0",
+      display: "flex !important",
+      justifyContent: "center !important",
+      alignItems: "center !important",
+      margin: "1em 0 !important",
     },
 
     pre: {
@@ -73,9 +83,39 @@ const StyledEditorContent = styled(EditorContent)(({ theme }) => ({
         fontSize: "0.8rem",
         padding: 0,
       },
+      ".hljs-comment, .hljs-quote": {
+        color: "#616161",
+      },
+      ".hljs-variable, .hljs-template-variable, .hljs-attribute, .hljs-tag, .hljs-name, .hljs-regexp, .hljs-link, .hljs-selector-id, .hljs-selector-class":
+        {
+          color: "#F98181",
+        },
+      ".hljs-number, .hljs-meta, .hljs-built_in, .hljs-builtin-name, .hljs-literal, .hljs-type, .hljs-params":
+        {
+          color: "#FBBC88",
+        },
+      ".hljs-string, .hljs-symbol, .hljs-bullet": {
+        color: "#B9F18D",
+      },
+      ".hljs-title, .hljs-section": {
+        color: "#FAF594",
+      },
+      ".hljs-keyword, .hljs-selector-tag": {
+        color: "#70CFF8",
+      },
+      ".hljs-emphasis": {
+        fontStyle: "italic",
+      },
+      ".hljs-strong": {
+        fontWeight: 700,
+      },
     },
   },
 }));
+
+const customLink = Link.extend({
+  inclusive: false,
+});
 
 const RichTextEditor = () => {
   const [formats, setFormats] = useState(() => [""]);
@@ -83,8 +123,9 @@ const RichTextEditor = () => {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Link,
+      StarterKit.configure({
+        codeBlock: false,
+      }),
       Image.configure({
         HTMLAttributes: {
           class: "image-wrapper",
@@ -92,11 +133,20 @@ const RichTextEditor = () => {
       }),
       Dropcursor,
       Underline,
+      customLink.configure({
+        openOnClick: false,
+        linkOnPaste: true,
+        defaultProtocol: "https",
+      }),
       Color,
+      Subscript,
       TextStyle,
+      CodeBlockLowlight.configure({
+        lowlight: createLowlight(common),
+      }),
       Commands.configure({
         suggestion: {
-          items: getSuggestionItems,
+          items: ({ query }) => getSuggestionItems(query),
           render: renderItems,
         },
       }),
@@ -108,6 +158,58 @@ const RichTextEditor = () => {
       },
     },
   });
+
+  const setLink = useCallback(() => {
+    if (!editor) return;
+
+    const previousUrl = editor.getAttributes("link").href;
+    const url = window.prompt("URL", previousUrl);
+
+    // cancelled
+    if (url === null) {
+      return;
+    }
+
+    // empty
+    if (url === "") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
+    }
+
+    // Add protocol if not present
+    const urlWithProtocol = !/^https?:\/\//i.test(url) ? `https://${url}` : url;
+
+    // update link
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: urlWithProtocol })
+      .run();
+  }, [editor]);
+
+  useEffect(() => {
+    if (editor) {
+      const updateFormats = () => {
+        const newFormats = [];
+        if (editor.isActive("bold")) newFormats.push("bold");
+        if (editor.isActive("italic")) newFormats.push("italic");
+        if (editor.isActive("underline")) newFormats.push("underlined");
+        if (editor.isActive("strike")) newFormats.push("strike");
+        if (editor.isActive("subscript")) newFormats.push("subscript");
+        if (editor.isActive("link")) newFormats.push("link");
+        setFormats(newFormats);
+      };
+
+      editor.on("selectionUpdate", updateFormats);
+      editor.on("update", updateFormats);
+
+      return () => {
+        editor.off("selectionUpdate", updateFormats);
+        editor.off("update", updateFormats);
+      };
+    }
+  }, [editor]);
 
   const handleColorChange = useCallback(
     (event) => {
@@ -146,6 +248,7 @@ const RichTextEditor = () => {
               value="bold"
               aria-label="bold"
               onClick={() => editor.chain().focus().toggleBold().run()}
+              variant={editor.isActive("bold") ? "soft" : "plain"}
             >
               <FormatBoldIcon />
             </IconButton>
@@ -153,23 +256,41 @@ const RichTextEditor = () => {
               value="italic"
               aria-label="italic"
               onClick={() => editor.chain().focus().toggleItalic().run()}
+              variant={editor.isActive("italic") ? "soft" : "plain"}
             >
               <FormatItalicIcon />
             </IconButton>
             <IconButton
-              value="underlined"
-              aria-label="underlined"
+              value="underline"
+              aria-label="underline"
               onClick={() => editor.chain().focus().toggleUnderline().run()}
+              variant={editor.isActive("underline") ? "soft" : "plain"}
             >
               <FormatUnderlinedIcon />
             </IconButton>
             <IconButton
               value="strike"
-              aria-label="strike"
+              aria-label="strikethrough"
               onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={editor.isActive("strike") ? "is-active" : ""}
+              variant={editor.isActive("strike") ? "soft" : "plain"}
             >
               <FormatStrikethroughIcon />
+            </IconButton>
+            <IconButton
+              value="link"
+              aria-label="link"
+              onClick={setLink}
+              variant={editor.isActive("link") ? "soft" : "plain"}
+            >
+              <LinkIcon />
+            </IconButton>
+            <IconButton
+              value="subscript"
+              aria-label="subscript"
+              onClick={() => editor.chain().focus().toggleSubscript().run()}
+              variant={editor.isActive("subscript") ? "soft" : "plain"}
+            >
+              <SubscriptIcon />
             </IconButton>
           </ToggleButtonGroup>
           <Divider
