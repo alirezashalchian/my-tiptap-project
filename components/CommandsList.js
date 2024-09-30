@@ -1,76 +1,29 @@
-import React, { Component, createRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import List from "@mui/joy/List";
 import ListItem from "@mui/joy/ListItem";
 import ListItemButton from "@mui/joy/ListItemButton";
 import ListSubheader from "@mui/joy/ListSubheader";
 import Sheet from "@mui/joy/Sheet";
 
-class CommandsList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selectedIndex: 0,
-    };
-    this.listRef = createRef();
-    this.itemRefs = {};
-  }
+const CommandsList = forwardRef(({ items, command }, ref) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const listRef = useRef(null);
+  const itemRefs = useRef({});
 
-  componentDidUpdate(prevProps) {
-    if (this.props.items !== prevProps.items) {
-      this.setState({ selectedIndex: 0 });
-    }
-  }
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [items]);
 
-  onKeyDown = ({ event }) => {
-    if (event.key === "ArrowUp") {
-      this.upHandler();
-      return true;
-    }
-    if (event.key === "ArrowDown") {
-      this.downHandler();
-      return true;
-    }
-    if (event.key === "Enter") {
-      this.enterHandler();
-      return true;
-    }
-    return false;
-  };
-
-  upHandler = () => {
-    this.setState(
-      (prevState) => ({
-        selectedIndex:
-          (prevState.selectedIndex - 1 + this.props.items.length) %
-          this.props.items.length,
-      }),
-      () => this.scrollToItem(this.state.selectedIndex)
-    );
-  };
-
-  downHandler = () => {
-    this.setState(
-      (prevState) => ({
-        selectedIndex: (prevState.selectedIndex + 1) % this.props.items.length,
-      }),
-      () => this.scrollToItem(this.state.selectedIndex)
-    );
-  };
-
-  enterHandler = () => {
-    this.selectItem(this.state.selectedIndex);
-  };
-
-  selectItem = (index) => {
-    const item = this.props.items[index];
-    if (item) {
-      this.props.command(item);
-    }
-  };
-
-  scrollToItem = (index) => {
-    const itemElement = this.itemRefs[index];
-    const listElement = this.listRef.current;
+  const scrollToItem = useCallback((index) => {
+    const itemElement = itemRefs.current[index];
+    const listElement = listRef.current;
     if (itemElement && listElement) {
       const itemRect = itemElement.getBoundingClientRect();
       const listRect = listElement.getBoundingClientRect();
@@ -81,55 +34,95 @@ class CommandsList extends Component {
         listElement.scrollTop -= listRect.top - itemRect.top;
       }
     }
-  };
+  }, []);
 
-  render() {
-    const { items } = this.props;
-    const groupedItems = items.reduce((acc, item) => {
-      if (!acc[item.category]) {
-        acc[item.category] = [];
+  const upHandler = useCallback(() => {
+    setSelectedIndex((prevIndex) => {
+      const newIndex = (prevIndex - 1 + items.length) % items.length;
+      scrollToItem(newIndex);
+      return newIndex;
+    });
+  }, [items.length, scrollToItem]);
+
+  const downHandler = useCallback(() => {
+    setSelectedIndex((prevIndex) => {
+      const newIndex = (prevIndex + 1) % items.length;
+      scrollToItem(newIndex);
+      return newIndex;
+    });
+  }, [items.length, scrollToItem]);
+
+  const enterHandler = useCallback(() => {
+    const item = items[selectedIndex];
+    if (item) {
+      command(item);
+    }
+  }, [items, selectedIndex, command]);
+
+  useImperativeHandle(ref, () => ({
+    onKeyDown: ({ event }) => {
+      if (event.key === "ArrowUp") {
+        upHandler();
+        return true;
       }
-      acc[item.category].push(item);
-      return acc;
-    }, {});
+      if (event.key === "ArrowDown") {
+        downHandler();
+        return true;
+      }
+      if (event.key === "Enter") {
+        enterHandler();
+        return true;
+      }
+      return false;
+    },
+  }));
 
-    return (
-      <Sheet
-        variant="outlined"
-        sx={{
-          width: 320,
-          maxHeight: 300,
-          overflow: "auto",
-          borderRadius: "sm",
-        }}
-        ref={this.listRef}
-      >
-        <List>
-          {Object.entries(groupedItems).map(
-            ([category, categoryItems], categoryIndex) => (
-              <React.Fragment key={categoryIndex}>
-                <ListSubheader>{category}</ListSubheader>
-                {categoryItems.map((item, index) => {
-                  const globalIndex = items.findIndex((i) => i === item);
-                  return (
-                    <ListItem key={index}>
-                      <ListItemButton
-                        ref={(el) => (this.itemRefs[globalIndex] = el)}
-                        selected={globalIndex === this.state.selectedIndex}
-                        onClick={() => this.selectItem(globalIndex)}
-                      >
-                        {item.element || item.title}
-                      </ListItemButton>
-                    </ListItem>
-                  );
-                })}
-              </React.Fragment>
-            )
-          )}
-        </List>
-      </Sheet>
-    );
-  }
-}
+  const groupedItems = items.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
+  return (
+    <Sheet
+      variant="outlined"
+      sx={{
+        width: 320,
+        maxHeight: 300,
+        overflow: "auto",
+        borderRadius: "sm",
+      }}
+      ref={listRef}
+    >
+      <List>
+        {Object.entries(groupedItems).map(
+          ([category, categoryItems], categoryIndex) => (
+            <React.Fragment key={categoryIndex}>
+              <ListSubheader>{category}</ListSubheader>
+              {categoryItems.map((item, index) => {
+                const globalIndex = items.findIndex((i) => i === item);
+                return (
+                  <ListItem key={index}>
+                    <ListItemButton
+                      ref={(el) => (itemRefs.current[globalIndex] = el)}
+                      selected={globalIndex === selectedIndex}
+                      onClick={() => command(item)}
+                    >
+                      {item.element || item.title}
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </React.Fragment>
+          )
+        )}
+      </List>
+    </Sheet>
+  );
+});
+
+CommandsList.displayName = "CommandsList";
 
 export default CommandsList;

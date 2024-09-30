@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
 
 const Commands = Extension.create({
-  name: "mention",
+  name: "commands",
 
   defaultOptions: {
     suggestion: {

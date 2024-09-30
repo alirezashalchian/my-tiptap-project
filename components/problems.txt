@@ -31,5 +31,8 @@ but i cant understand why we use different methods for codeblock and blockqoute.
 
 ✓8.Codeblock to Codeblock lowlight. Solved✓
 
-9. Url inserting for link and image is neither user-friendly nor nice, 
+9.Url inserting for link and image is neither user-friendly nor nice, 
 notion's url input is nice, try to make it like that
+
+10.material icons doesnt provide an icon for headings, image, ...
+

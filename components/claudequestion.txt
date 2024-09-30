@@ -1,0 +1,9 @@
+hey, i am building a text editor using Tiptap and MUI Joy libraries on a Next.js project. i have a slash command menu which contains several extension:
+3 heading blockqoute, code block, numbered list, bullet list, image and AI.
+AI custom extension is defined in AICommand and uesd in Items.js
+CommandsList.js returns items from Items.js and renderItems.jsx handles the rendering process.
+
+I want my AI extension to work like the Notion AI extension ?  meaning that instead of opening a window prompt i want the extension to open up a text input where the slash command was issued.
+how can i achieve this ?    
+
+https://claude.ai/chat/3fe591fc-b2c6-4d30-9f24-9454bd4dca84

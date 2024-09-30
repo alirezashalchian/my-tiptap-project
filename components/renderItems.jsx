@@ -3,12 +3,12 @@ import tippy from "tippy.js";
 import CommandsList from "./CommandsList";
 
 const renderItems = () => {
-  let component;
+  let reactRenderer;
   let popup;
 
   return {
     onStart: (props) => {
-      component = new ReactRenderer(CommandsList, {
+      reactRenderer = new ReactRenderer(CommandsList, {
         props,
         editor: props.editor,
       });
@@ -16,7 +16,7 @@ const renderItems = () => {
       popup = tippy("body", {
         getReferenceClientRect: props.clientRect,
         appendTo: () => document.body,
-        content: component.element,
+        content: reactRenderer.element,
         showOnCreate: true,
         interactive: true,
         trigger: "manual",
@@ -24,7 +24,7 @@ const renderItems = () => {
       });
     },
     onUpdate(props) {
-      component.updateProps(props);
+      reactRenderer.updateProps(props);
 
       popup[0].setProps({
         getReferenceClientRect: props.clientRect,
@@ -33,15 +33,14 @@ const renderItems = () => {
     onKeyDown(props) {
       if (props.event.key === "Escape") {
         popup[0].hide();
-
         return true;
       }
 
-      return component.ref?.onKeyDown(props);
+      return reactRenderer.ref?.onKeyDown(props);
     },
     onExit() {
       popup[0].destroy();
-      component.destroy();
+      reactRenderer.destroy();
     },
   };
 };

@@ -1,3 +1,5 @@
+import AICommand from "./AICommand";
+
 const getSuggestionItems = (query) => {
   const items = [
     {
@@ -69,22 +71,31 @@ const getSuggestionItems = (query) => {
         editor.chain().focus().deleteRange(range).toggleOrderedList().run();
       },
     },
-
     {
       title: "Insert Image",
       category: "Media",
       command: ({ editor, range }) => {
         const url = window.prompt("Enter the image URL:");
         if (url) {
-          editor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .setImage({ src: url, alt: "Image" })
-            .run();
+          const img = new Image();
+          img.onload = () => {
+            editor
+              .chain()
+              .focus()
+              .deleteRange(range)
+              .setImage({ src: url, alt: "Image" })
+              .run();
+          };
+          img.onerror = () => {
+            alert(
+              "Failed to load the image. Please check the URL and try again."
+            );
+          };
+          img.src = url;
         }
       },
     },
+    AICommand,
   ];
 
   if (query) {
