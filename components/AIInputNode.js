@@ -1,12 +1,16 @@
 import { Node } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { Textarea, IconButton, Stack } from "@mui/joy";
+import SendIcon from "@mui/icons-material/Send";
+import CloseIcon from "@mui/icons-material/Close";
 
 const AIInputComponent = ({ editor, node, getPos }) => {
+  const [inputValue, setInputValue] = useState("");
   const textareaRef = useRef(null);
-  const [rows, setRows] = useState(1);
 
   useEffect(() => {
+    // This effect will run after the component mounts
     const timeoutId = setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
@@ -16,19 +20,37 @@ const AIInputComponent = ({ editor, node, getPos }) => {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const handleSubmit = () => {
-    const userInput = textareaRef.current.value;
-    // Replace this with your actual AI API call
-    const aiResponse = `AI response to: "${userInput}"`;
+  const handleSubmit = async () => {
+    try {
+      // Replace this with the actual AI API call
+      // const aiResponse = await fetchAIResponse(inputValue);
+      const aiResponse = `AI response to: "${inputValue}"`;
 
+      const pos = getPos();
+      if (typeof pos === "number") {
+        const { state } = editor;
+        const { tr } = state;
+        const end = pos + node.nodeSize;
+
+        // Delete the AI input node
+        tr.delete(pos, end);
+
+        // Insert the AI response
+        tr.insert(pos, state.schema.text(aiResponse));
+
+        // Apply the transaction
+        editor.view.dispatch(tr);
+      }
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      // Handle error (e.g., show an error message to the user)
+    }
+  };
+
+  const handleClose = () => {
     const pos = getPos();
     if (typeof pos === "number") {
-      editor
-        .chain()
-        .focus()
-        .deleteRange({ from: pos, to: pos + node.nodeSize })
-        .insertContent(aiResponse)
-        .run();
+      editor.commands.deleteRange({ from: pos, to: pos + node.nodeSize });
     }
   };
 
@@ -39,67 +61,36 @@ const AIInputComponent = ({ editor, node, getPos }) => {
     }
   };
 
-  const handleInput = (e) => {
-    const lineHeight = 20; // Adjust this value based on your font size
-    const minRows = 1;
-    const maxRows = 5; // Maximum number of visible rows before scrolling
-
-    const previousRows = e.target.rows;
-    e.target.rows = minRows; // Reset rows to recalculate
-
-    const currentRows = Math.floor(e.target.scrollHeight / lineHeight);
-
-    if (currentRows === previousRows) {
-      e.target.rows = currentRows;
-    }
-
-    if (currentRows >= maxRows) {
-      e.target.rows = maxRows;
-      e.target.scrollTop = e.target.scrollHeight;
-    }
-
-    setRows(currentRows < maxRows ? currentRows : maxRows);
-  };
-
   return (
-    <NodeViewWrapper
-      className="ai-input-wrapper"
-      style={{ display: "flex", width: "100%", marginBottom: "8px" }}
-    >
-      <textarea
-        ref={textareaRef}
-        rows={rows}
-        placeholder={node.attrs.placeholder}
-        onKeyDown={handleKeyDown}
-        onInput={handleInput}
-        style={{
-          width: "100%",
-          resize: "none",
-          border: "none",
-          outline: "none",
-          padding: "4px",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "4px 0 0 4px",
-          fontFamily: "inherit",
-          fontSize: "inherit",
-          lineHeight: "1.5",
-          overflow: rows >= 5 ? "auto" : "hidden",
-        }}
-      />
-      <button
-        onClick={handleSubmit}
-        style={{
-          border: "none",
-          backgroundColor: "#007bff",
-          color: "white",
-          padding: "4px 8px",
-          borderRadius: "0 4px 4px 0",
-          cursor: "pointer",
-          alignSelf: "flex-start",
-        }}
-      >
-        Submit
-      </button>
+    <NodeViewWrapper>
+      <Stack spacing={1} direction="row" alignItems="flex-start">
+        <Textarea
+          slotProps={{
+            textarea: {
+              ref: textareaRef,
+            },
+          }}
+          autoFocus
+          minRows={5}
+          maxRows={10}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={node.attrs.placeholder}
+          onKeyDown={handleKeyDown}
+          sx={{
+            flexGrow: 1,
+            "&:focus-visible": {
+              outline: "none",
+            },
+          }}
+        />
+        <IconButton onClick={handleSubmit} size="sm">
+          <SendIcon />
+        </IconButton>
+        <IconButton onClick={handleClose} size="sm">
+          <CloseIcon />
+        </IconButton>
+      </Stack>
     </NodeViewWrapper>
   );
 };

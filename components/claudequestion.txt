@@ -1,9 +1,20 @@
-hey, i am building a text editor using Tiptap and MUI Joy libraries on a Next.js project. i have a slash command menu which contains several extension:
-3 heading blockqoute, code block, numbered list, bullet list, image and AI.
-AI custom extension is defined in AICommand and uesd in Items.js
+hey, i am building a text editor using Tiptap and MUI Joy libraries on a Next.js project. i have a slash command menu which contains several extension: 3 levels of headings, a blockqoute, a code block, a numbered list, a bullet list, an image and Ask AI extension.
+
+AI custom extension is defined in AICommand and AIInput and then uesd in Items.js.
+
 CommandsList.js returns items from Items.js and renderItems.jsx handles the rendering process.
 
-I want my AI extension to work like the Notion AI extension ?  meaning that instead of opening a window prompt i want the extension to open up a text input where the slash command was issued.
-how can i achieve this ?    
+When a user selects Ask AI extension, an input with a submit button gets rendered, and when the user submits their question a dummy string gets generated on the same lane that the user issued the Ask AI extension.
+
+I have done some temporary stylings for the AI input and its submit button, but for the styling of the AI input i want to use MUI Joy library for consistency.
+
+which components of MUI Joy should I use and how should i do it so that nothing breaks in the app.
+
 
 https://claude.ai/chat/3fe591fc-b2c6-4d30-9f24-9454bd4dca84
+
+
+
+after using MUI Joy do we still need the useRef and useEffect hook ? If so why do we still need them what are their purpose ?
+cant we set the focus on input by giving it MUI Joy props ?
+also i want the MUI Joy input to have minimum rows of 5. How can i achieve that ?
