@@ -1,4 +1,40 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This project is a text editor built with [Next.js](https://nextjs.org/), [Tiptap](https://tiptap.dev/) and [MUI Joy](https://mui.com/joy-ui/getting-started/) featuring AI integration. It provides a customizable editing experience with various formatting options and an AI-powered assistant.
+
+## Installation
+
+To install this project, follow these steps:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/yourusername/your-repo-name.git
+   cd your-repo-name
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install @tiptap/react @tiptap/core @tiptap/starter-kit @mui/material @mui/joy @mui/icons-material @emotion/react @emotion/styled
+   # or
+   yarn install @tiptap/react @tiptap/core @tiptap/starter-kit @mui/material @mui/joy @mui/icons-material @emotion/react @emotion/styled
+   ```
+
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory and add the following variables:
+
+   ```
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+
+   Replace `your_openai_api_key` with your actual OpenAI API key.
+
+4. (Optional) Configure AI settings:
+   If you want to customize the AI behavior, you can modify the `config/ai-config.js` file.
+
+5. (Optional) Customize the editor:
+   You can adjust the editor's appearance and behavior by modifying the components in the `components` directory, especially `Editor.js` and `AICommand.js`.
+
+Now you're ready to run the project using the instructions in the "Getting Started" section below.
 
 ## Getting Started
 
