@@ -25,6 +25,7 @@ const AIInputComponent = ({ editor, node, getPos }) => {
 
     try {
       const aiResponse = `AI response to: "${inputValue}"`;
+      // add the actual AI API here
 
       const pos = getPos();
       if (typeof pos === "number") {
